@@ -99,3 +99,11 @@ func (c *Conveyor) clear_stage(stage_id int) error {
 	_, err := c.perform_action(c.stages[stage_id].clear, stage_id)
 	return err
 }
+
+func (c *Conveyor) get_stages_number() int {
+	return len(c.stages)
+}
+
+func (c *Conveyor) get_stage_steps_number(stage_id int) int {
+	return c.stages[stage_id].get_steps_number()
+}

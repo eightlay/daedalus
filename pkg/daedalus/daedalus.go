@@ -31,6 +31,10 @@ func (d *Daedalus) AddStage() int {
 }
 
 func (d *Daedalus) AddStep(stage_id int, step Step) (int, int) {
+	if step == nil {
+		panic("step is nil")
+	}
+
 	if stage_id == -1 {
 		stage := new_stage()
 		stage.add_step(step)
@@ -56,4 +60,12 @@ func (d *Daedalus) Clear() {
 
 func (d *Daedalus) ClearStage(stage_id int) {
 	d.handle_error(d.conv.clear_stage(stage_id))
+}
+
+func (d *Daedalus) GetStagesNumber() int {
+	return d.conv.get_stages_number()
+}
+
+func (d *Daedalus) GetStageStepsNumber(stage_id int) int {
+	return d.conv.get_stage_steps_number(stage_id)
 }

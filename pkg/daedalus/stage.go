@@ -41,3 +41,7 @@ func (s *Stage) clear() {
 	s.steps = map[int]Step{}
 	s.steps_id_counter.Clear()
 }
+
+func (s *Stage) get_steps_number() int {
+	return len(s.steps)
+}
