@@ -38,16 +38,13 @@ func (s *MyFancyStep2) GetOutputData() []string {
 
 func main() {
 	d := daedalus.NewDaedalus()
-	stage_ind, step_ind := d.AddStep(-1, &MyFancyStep1{})
+	stage_id, step_id := d.AddStep(-1, &MyFancyStep1{})
 
-	d.AddStep(stage_ind, &MyFancyStep2{})
-	d.DelStep(stage_ind, step_ind)
+	d.AddStep(stage_id, &MyFancyStep2{})
+	d.DelStep(stage_id, step_id)
 
 	d.AddStep(-1, &MyFancyStep1{})
 
-	if err := d.Build(); err != nil {
-		panic(err)
-	}
-
+	d.Build()
 	d.Run()
 }

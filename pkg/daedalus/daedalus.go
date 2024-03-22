@@ -12,43 +12,48 @@ func NewDaedalus() *Daedalus {
 	}
 }
 
-func (d *Daedalus) Run() {
-	err := d.conv.run(d.resolver)
-
+func (d *Daedalus) handle_error(err error) {
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (d *Daedalus) Build() error {
-	return d.conv.build()
+func (d *Daedalus) Run() {
+	d.handle_error(d.conv.run(d.resolver))
+}
+
+func (d *Daedalus) Build() {
+	d.handle_error(d.conv.build())
 }
 
 func (d *Daedalus) AddStage() int {
 	return d.conv.add_stage(new_stage())
 }
 
-func (d *Daedalus) AddStep(stage_ind int, step Step) (int, int) {
-	if stage_ind == -1 {
+func (d *Daedalus) AddStep(stage_id int, step Step) (int, int) {
+	if stage_id == -1 {
 		stage := new_stage()
 		stage.add_step(step)
 		return d.conv.add_stage(stage), 0
 	}
-	return stage_ind, d.conv.add_step(stage_ind, step)
+
+	step_id, err := d.conv.add_step(stage_id, step)
+	d.handle_error(err)
+	return stage_id, step_id
 }
 
-func (d *Daedalus) DelStage(stage_ind int) {
-	d.conv.del_stage(stage_ind)
+func (d *Daedalus) DelStage(stage_id int) {
+	d.handle_error(d.conv.del_stage(stage_id))
 }
 
-func (d *Daedalus) DelStep(stage_ind int, step_ind int) {
-	d.conv.del_step(stage_ind, step_ind)
+func (d *Daedalus) DelStep(stage_id int, step_id int) {
+	d.handle_error(d.conv.del_step(stage_id, step_id))
 }
 
 func (d *Daedalus) Clear() {
 	d.conv.clear()
 }
 
-func (d *Daedalus) ClearStage(stage_ind int) {
-	d.conv.clear_stage(stage_ind)
+func (d *Daedalus) ClearStage(stage_id int) {
+	d.handle_error(d.conv.clear_stage(stage_id))
 }

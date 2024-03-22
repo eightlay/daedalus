@@ -1,16 +1,22 @@
 package daedalus
 
-import "errors"
+import (
+	"errors"
+
+	idcounter "github.com/eightlay/daedalus/internal/id_counter"
+)
 
 type Conveyor struct {
-	is_built bool
-	stages   []*Stage
+	is_built         bool
+	stages           map[int]*Stage
+	stage_id_counter *idcounter.IdCounter
 }
 
 func new_conveyor() *Conveyor {
 	return &Conveyor{
-		is_built: false,
-		stages:   []*Stage{},
+		is_built:         false,
+		stages:           map[int]*Stage{},
+		stage_id_counter: idcounter.NewIdCounter(),
 	}
 }
 
@@ -31,44 +37,65 @@ func (c *Conveyor) build() error {
 	return nil
 }
 
-func (c *Conveyor) check_stage_index(stage_ind int) {
-	if stage_ind < 0 || stage_ind >= len(c.stages) {
-		panic("stage_ind is out of range")
+func (c *Conveyor) perform_action(fn interface{}, stage_id int, args ...interface{}) ([]interface{}, error) {
+	if err := c.check_stage_id(stage_id); err != nil {
+		return nil, err
 	}
+	c.is_built = false
+
+	argSlice := make([]interface{}, len(args))
+	copy(argSlice, args)
+
+	if f, ok := fn.(func()); ok {
+		f()
+	} else if f, ok := fn.(func(Step) int); ok {
+		return []interface{}{f(argSlice[0].(Step))}, nil
+	} else if f, ok := fn.(func(int, int) error); ok {
+		return nil, f(argSlice[0].(int), argSlice[1].(int))
+	} else if f, ok := fn.(func(int) error); ok {
+		return nil, f(argSlice[0].(int))
+	} else {
+		panic("Invalid function type")
+	}
+
+	return nil, nil
+}
+
+func (c *Conveyor) check_stage_id(stage_id int) error {
+	if _, ok := c.stages[stage_id]; !ok {
+		return errors.New("Stage not found")
+	}
+	return nil
 }
 
 func (c *Conveyor) add_stage(stage *Stage) int {
 	c.is_built = false
-	stage_ind := len(c.stages)
-	c.stages = append(c.stages, stage)
-	return stage_ind
+	c.stages[c.stage_id_counter.Next()] = stage
+	return c.stage_id_counter.Current()
 }
 
-func (c *Conveyor) add_step(stage_ind int, step Step) int {
-	c.is_built = false
-	c.check_stage_index(stage_ind)
-	return c.stages[stage_ind].add_step(step)
+func (c *Conveyor) add_step(stage_id int, step Step) (int, error) {
+	res, err := c.perform_action(c.stages[stage_id].add_step, stage_id, step)
+	return res[0].(int), err
 }
 
-func (c *Conveyor) del_stage(stage_ind int) {
-	c.is_built = false
-	c.check_stage_index(stage_ind)
-	c.stages = append(c.stages[:stage_ind], c.stages[stage_ind+1:]...)
+func (c *Conveyor) del_stage(stage_id int) error {
+	_, err := c.perform_action(func() { delete(c.stages, stage_id) }, stage_id)
+	return err
 }
 
-func (c *Conveyor) del_step(stage_ind, step_ind int) {
-	c.is_built = false
-	c.check_stage_index(stage_ind)
-	c.stages[stage_ind].del_step(step_ind)
+func (c *Conveyor) del_step(stage_id, step_id int) error {
+	_, err := c.perform_action(c.stages[stage_id].del_step, stage_id, step_id)
+	return err
 }
 
 func (c *Conveyor) clear() {
 	c.is_built = false
-	c.stages = []*Stage{}
+	c.stages = map[int]*Stage{}
+	c.stage_id_counter.Clear()
 }
 
-func (c *Conveyor) clear_stage(stage_ind int) {
-	c.is_built = false
-	c.check_stage_index(stage_ind)
-	c.stages[stage_ind].clear()
+func (c *Conveyor) clear_stage(stage_id int) error {
+	_, err := c.perform_action(c.stages[stage_id].clear, stage_id)
+	return err
 }

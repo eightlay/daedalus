@@ -1,12 +1,20 @@
 package daedalus
 
+import (
+	"errors"
+
+	idcounter "github.com/eightlay/daedalus/internal/id_counter"
+)
+
 type Stage struct {
-	steps []Step
+	steps            map[int]Step
+	steps_id_counter *idcounter.IdCounter
 }
 
 func new_stage() *Stage {
 	return &Stage{
-		steps: []Step{},
+		steps:            map[int]Step{},
+		steps_id_counter: idcounter.NewIdCounter(),
 	}
 }
 
@@ -17,18 +25,19 @@ func (s *Stage) run(resolver *Resolver) {
 }
 
 func (s *Stage) add_step(step Step) int {
-	step_ind := len(s.steps)
-	s.steps = append(s.steps, step)
-	return step_ind
+	s.steps[s.steps_id_counter.Next()] = step
+	return s.steps_id_counter.Current()
 }
 
-func (s *Stage) del_step(step_ind int) {
-	if step_ind < 0 || step_ind >= len(s.steps) {
-		panic("step_ind is out of range")
+func (s *Stage) del_step(step_id int) error {
+	if _, ok := s.steps[step_id]; !ok {
+		return errors.New("Step not found")
 	}
-	s.steps = append(s.steps[:step_ind], s.steps[step_ind+1:]...)
+	delete(s.steps, step_id)
+	return nil
 }
 
 func (s *Stage) clear() {
-	s.steps = []Step{}
+	s.steps = map[int]Step{}
+	s.steps_id_counter.Clear()
 }
