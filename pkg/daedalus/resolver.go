@@ -16,14 +16,8 @@ func (r *Resolver) PushData(data Data) {
 	r.data[data.GetName()] = data
 }
 
-func (r *Resolver) GetData(name string) Data {
+func (r *Resolver) GetData(data Data) {
 	// NOTE: no need to check if the key exists, as the key is always guaranteed to exist
 	// thanks to the conveyor's build process
-	return r.data[name]
-}
-
-func (r *Resolver) DelData(name string) {
-	// NOTE: no need to check if the key exists, as the key is always guaranteed to exist
-	// thanks to the conveyor's build process
-	delete(r.data, name)
+	data.CopyFrom(r.data[data.GetName()])
 }
