@@ -25,8 +25,10 @@ func (c *Conveyor) run(resolver *Resolver) error {
 		return errors.New("Conveyor is not built")
 	}
 
-	for _, stage := range c.stages {
-		stage.run(resolver)
+	execution_order := sort_map_keys(c.stages)
+
+	for id := range execution_order {
+		c.stages[id].run(resolver)
 	}
 	return nil
 }

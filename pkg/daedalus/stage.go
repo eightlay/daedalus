@@ -19,8 +19,10 @@ func new_stage() *Stage {
 }
 
 func (s *Stage) run(resolver *Resolver) {
-	for _, step := range s.steps {
-		step.Run(resolver)
+	execution_order := sort_map_keys(s.steps)
+
+	for id := range execution_order {
+		s.steps[id].Run(resolver)
 	}
 }
 
