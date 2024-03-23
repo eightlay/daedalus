@@ -187,4 +187,4 @@ func TestGetStageStepsNumber(t *testing.T) {
 	}
 }
 
-// TODO: Add tests for Run() and Build()
+// TODO: Add tests for Run(), Build(), goroutines
