@@ -28,17 +28,21 @@ func (d *Daedalus) Build() {
 	d.resolver = new_resolver(db_size)
 }
 
-func (d *Daedalus) AddStage() int {
-	return d.conv.add_stage(new_stage())
+func (d *Daedalus) AddStage(run_steps_as_goroutines ...bool) int {
+	return d.conv.add_stage(new_stage(run_steps_as_goroutines...))
 }
 
-func (d *Daedalus) AddStep(stage_id int, step Step) (int, int) {
+func (d *Daedalus) AddStep(stage_id int, step Step, run_steps_as_goroutines ...bool) (int, int) {
 	if step == nil {
 		panic("step is nil")
 	}
 
+	if stage_id != -1 && len(run_steps_as_goroutines) > 0 {
+		panic("run_steps_as_goroutines should not be provided when adding a step to an existing stage")
+	}
+
 	if stage_id == -1 {
-		stage := new_stage()
+		stage := new_stage(run_steps_as_goroutines...)
 		stage.add_step(step)
 		return d.conv.add_stage(stage), 0
 	}
