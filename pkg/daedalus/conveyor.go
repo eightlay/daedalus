@@ -31,10 +31,10 @@ func (c *Conveyor) run(resolver *Resolver) error {
 	return nil
 }
 
-func (c *Conveyor) build() error {
+func (c *Conveyor) build() (int, error) {
 	// TODO
 	c.is_built = true
-	return nil
+	return 0, nil
 }
 
 func (c *Conveyor) perform_action(fn interface{}, stage_id int, args ...interface{}) ([]interface{}, error) {

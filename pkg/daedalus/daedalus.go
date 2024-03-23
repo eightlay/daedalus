@@ -8,7 +8,7 @@ type Daedalus struct {
 func NewDaedalus() *Daedalus {
 	return &Daedalus{
 		conv:     new_conveyor(),
-		resolver: new_resolver(),
+		resolver: nil,
 	}
 }
 
@@ -23,7 +23,9 @@ func (d *Daedalus) Run() {
 }
 
 func (d *Daedalus) Build() {
-	d.handle_error(d.conv.build())
+	db_size, err := d.conv.build()
+	d.handle_error(err)
+	d.resolver = new_resolver(db_size)
 }
 
 func (d *Daedalus) AddStage() int {
