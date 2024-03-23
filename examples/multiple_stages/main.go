@@ -7,10 +7,11 @@ import (
 )
 
 type MyFancyStep struct {
+	stage_id int
 }
 
 func (s *MyFancyStep) Run(resolver *daedalus.Resolver) {
-	fmt.Println("MyFancyStep")
+	fmt.Printf("MyFancyStep, stage_id == %d\n", s.stage_id)
 }
 
 func (s *MyFancyStep) GetRequiredData() []string {
@@ -23,7 +24,8 @@ func (s *MyFancyStep) GetOutputData() []string {
 
 func main() {
 	d := daedalus.NewDaedalus()
-	d.AddStep(-1, &MyFancyStep{})
+	d.AddStep(-1, &MyFancyStep{stage_id: 1})
+	d.AddStep(-1, &MyFancyStep{stage_id: 2})
 
 	d.Build()
 	d.Run()
