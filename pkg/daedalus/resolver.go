@@ -6,16 +6,37 @@ import (
 )
 
 type resolver struct {
-	data map[string]Data
+	data      map[string]Data
+	push_data func(Step, []Data) error
 }
 
-func new_resolver(database_size int) *resolver {
-	return &resolver{
+func new_resolver(database_size int, with_checks bool) *resolver {
+	resolver := &resolver{
 		data: make(map[string]Data, database_size),
 	}
+
+	if with_checks {
+		resolver.push_data = resolver.push_data_with_checks
+	} else {
+		resolver.push_data = resolver.push_data_without_checks
+	}
+
+	return resolver
 }
 
-func (r *resolver) push_data(step Step, data []Data) error {
+func (r *resolver) push_data_without_checks(_ Step, data []Data) error {
+	// NOTE: no need to check if the key exists, as the key is always guaranteed to exist
+	// thanks to the conveyor's build process
+	if r.data != nil {
+		for _, value := range data {
+			r.data[value.GetName()] = value
+		}
+	}
+
+	return nil
+}
+
+func (r *resolver) push_data_with_checks(step Step, data []Data) error {
 	// NOTE: no need to check if the key exists, as the key is always guaranteed to exist
 	// thanks to the conveyor's build process
 	declared_output_data := make(map[string]bool, len(data))

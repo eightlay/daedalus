@@ -22,10 +22,15 @@ func (d *Daedalus) Run() {
 	d.handle_error(d.conv.run(d.resolver))
 }
 
-func (d *Daedalus) Build() {
+func (d *Daedalus) Build(disable_checks ...bool) {
 	db_size, err := d.conv.build()
 	d.handle_error(err)
-	d.resolver = new_resolver(db_size)
+
+	if len(disable_checks) == 0 {
+		disable_checks = append(disable_checks, false)
+	}
+
+	d.resolver = new_resolver(db_size, !disable_checks[0])
 }
 
 func (d *Daedalus) AddStage(run_steps_as_goroutines ...bool) int {
