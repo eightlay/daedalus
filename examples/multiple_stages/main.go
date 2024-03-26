@@ -10,8 +10,9 @@ type MyFancyStep struct {
 	stage_id int
 }
 
-func (s *MyFancyStep) Run(resolver *daedalus.Resolver) {
+func (s *MyFancyStep) Run(data map[string]daedalus.Data) []daedalus.Data {
 	fmt.Printf("MyFancyStep, stage_id == %d\n", s.stage_id)
+	return nil
 }
 
 func (s *MyFancyStep) GetRequiredData() []string {

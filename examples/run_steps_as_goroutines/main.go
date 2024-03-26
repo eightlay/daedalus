@@ -13,11 +13,12 @@ type MyFancyStep struct {
 	wait_time    int
 }
 
-func (s *MyFancyStep) Run(resolver *daedalus.Resolver) {
+func (s *MyFancyStep) Run(data map[string]daedalus.Data) []daedalus.Data {
 	for i := 0; i < s.iters; i++ {
 		fmt.Println(s.wait_message)
 		time.Sleep(time.Duration(s.wait_time) * time.Second)
 	}
+	return nil
 }
 
 func (s *MyFancyStep) GetRequiredData() []string {

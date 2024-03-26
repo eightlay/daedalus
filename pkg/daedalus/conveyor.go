@@ -6,23 +6,23 @@ import (
 	idcounter "github.com/eightlay/daedalus/internal/id_counter"
 )
 
-type Conveyor struct {
+type conveyor struct {
 	is_built         bool
-	stages           map[int]*Stage
+	stages           map[int]*stage
 	stage_id_counter *idcounter.IdCounter
 }
 
-func new_conveyor() *Conveyor {
-	return &Conveyor{
+func new_conveyor() *conveyor {
+	return &conveyor{
 		is_built:         false,
-		stages:           map[int]*Stage{},
+		stages:           map[int]*stage{},
 		stage_id_counter: idcounter.NewIdCounter(),
 	}
 }
 
-func (c *Conveyor) run(resolver *Resolver) error {
+func (c *conveyor) run(resolver *resolver) error {
 	if !c.is_built {
-		return errors.New("Conveyor is not built")
+		return errors.New("conveyor is not built")
 	}
 
 	execution_order := sort_map_keys(c.stages)
@@ -33,13 +33,13 @@ func (c *Conveyor) run(resolver *Resolver) error {
 	return nil
 }
 
-func (c *Conveyor) build() (int, error) {
+func (c *conveyor) build() (int, error) {
 	// TODO
 	c.is_built = true
 	return 0, nil
 }
 
-func (c *Conveyor) perform_action(fn interface{}, stage_id int, args ...interface{}) ([]interface{}, error) {
+func (c *conveyor) perform_action(fn interface{}, stage_id int, args ...interface{}) ([]interface{}, error) {
 	if err := c.check_stage_id(stage_id); err != nil {
 		return nil, err
 	}
@@ -63,49 +63,49 @@ func (c *Conveyor) perform_action(fn interface{}, stage_id int, args ...interfac
 	return nil, nil
 }
 
-func (c *Conveyor) check_stage_id(stage_id int) error {
+func (c *conveyor) check_stage_id(stage_id int) error {
 	if _, ok := c.stages[stage_id]; !ok {
-		return errors.New("Stage not found")
+		return errors.New("stage not found")
 	}
 	return nil
 }
 
-func (c *Conveyor) add_stage(stage *Stage) int {
+func (c *conveyor) add_stage(stage *stage) int {
 	c.is_built = false
 	c.stages[c.stage_id_counter.Next()] = stage
 	return c.stage_id_counter.Current()
 }
 
-func (c *Conveyor) add_step(stage_id int, step Step) (int, error) {
+func (c *conveyor) add_step(stage_id int, step Step) (int, error) {
 	res, err := c.perform_action(c.stages[stage_id].add_step, stage_id, step)
 	return res[0].(int), err
 }
 
-func (c *Conveyor) del_stage(stage_id int) error {
+func (c *conveyor) del_stage(stage_id int) error {
 	_, err := c.perform_action(func() { delete(c.stages, stage_id) }, stage_id)
 	return err
 }
 
-func (c *Conveyor) del_step(stage_id, step_id int) error {
+func (c *conveyor) del_step(stage_id, step_id int) error {
 	_, err := c.perform_action(c.stages[stage_id].del_step, stage_id, step_id)
 	return err
 }
 
-func (c *Conveyor) clear() {
+func (c *conveyor) clear() {
 	c.is_built = false
-	c.stages = map[int]*Stage{}
+	c.stages = map[int]*stage{}
 	c.stage_id_counter.Clear()
 }
 
-func (c *Conveyor) clear_stage(stage_id int) error {
+func (c *conveyor) clear_stage(stage_id int) error {
 	_, err := c.perform_action(c.stages[stage_id].clear, stage_id)
 	return err
 }
 
-func (c *Conveyor) get_stages_number() int {
+func (c *conveyor) get_stages_number() int {
 	return len(c.stages)
 }
 
-func (c *Conveyor) get_stage_steps_number(stage_id int) int {
+func (c *conveyor) get_stage_steps_number(stage_id int) int {
 	return c.stages[stage_id].get_steps_number()
 }

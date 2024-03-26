@@ -1,8 +1,8 @@
 package daedalus
 
 type Daedalus struct {
-	conv     *Conveyor
-	resolver *Resolver
+	conv     *conveyor
+	resolver *resolver
 }
 
 func NewDaedalus() *Daedalus {

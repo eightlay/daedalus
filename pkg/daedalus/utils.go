@@ -6,7 +6,7 @@ import (
 
 func sort_map_keys(m interface{}) (keyList []int) {
 	switch m := m.(type) {
-	case map[int]*Stage:
+	case map[int]*stage:
 		for k := range m {
 			keyList = append(keyList, k)
 		}

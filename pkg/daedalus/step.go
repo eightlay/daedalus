@@ -1,7 +1,7 @@
 package daedalus
 
 type Step interface {
-	Run(*Resolver)
+	Run(map[string]Data) []Data
 	GetRequiredData() []string
 	GetOutputData() []string
 }

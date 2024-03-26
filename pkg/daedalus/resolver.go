@@ -1,23 +1,34 @@
 package daedalus
 
-type Resolver struct {
+type resolver struct {
 	data map[string]Data
 }
 
-func new_resolver(database_size int) *Resolver {
-	return &Resolver{
+func new_resolver(database_size int) *resolver {
+	return &resolver{
 		data: make(map[string]Data, database_size),
 	}
 }
 
-func (r *Resolver) PushData(data Data) {
+func (r *resolver) push_data(data []Data) {
 	// NOTE: no need to check if the key exists, as the key is always guaranteed to exist
 	// thanks to the conveyor's build process
-	r.data[data.GetName()] = data
+	if r.data != nil {
+		for _, value := range data {
+			r.data[value.GetName()] = value
+		}
+	}
 }
 
-func (r *Resolver) GetData(data Data) {
+func (r *resolver) get_data_for_step(step Step) map[string]Data {
 	// NOTE: no need to check if the key exists, as the key is always guaranteed to exist
 	// thanks to the conveyor's build process
-	data.CopyFrom(r.data[data.GetName()])
+	required_data := step.GetRequiredData()
+	data := make(map[string]Data, len(required_data))
+
+	for _, key := range required_data {
+		data[key] = r.data[key]
+	}
+
+	return data
 }

@@ -25,8 +25,10 @@ func (d *MyFancyData) CopyFrom(data daedalus.Data) {
 type MyFancyStep1 struct {
 }
 
-func (s *MyFancyStep1) Run(resolver *daedalus.Resolver) {
-	resolver.PushData(&MyFancyData{message: "Hello, I'm MyFancyStep1!"})
+func (s *MyFancyStep1) Run(data map[string]daedalus.Data) []daedalus.Data {
+	return []daedalus.Data{
+		&MyFancyData{message: "Hello, I'm MyFancyStep1!"},
+	}
 }
 
 func (s *MyFancyStep1) GetRequiredData() []string {
@@ -41,11 +43,10 @@ func (s *MyFancyStep1) GetOutputData() []string {
 type MyFancyStep2 struct {
 }
 
-func (s *MyFancyStep2) Run(resolver *daedalus.Resolver) {
-	data := MyFancyData{}
-	resolver.GetData(&data)
-
-	fmt.Println("Message from MyFancyStep1: ", data.message)
+func (s *MyFancyStep2) Run(data map[string]daedalus.Data) []daedalus.Data {
+	my_fancy_data := data["MyFancyData"].(*MyFancyData)
+	fmt.Println("Message from MyFancyStep1: ", my_fancy_data.message)
+	return nil
 }
 
 func (s *MyFancyStep2) GetRequiredData() []string {

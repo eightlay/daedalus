@@ -8,7 +8,7 @@ import (
 
 type TestStep struct{}
 
-func (t *TestStep) Run(res *daedalus.Resolver) {}
+func (t *TestStep) Run(data map[string]daedalus.Data) []daedalus.Data { return nil }
 func (t *TestStep) GetRequiredData() []string {
 	return []string{}
 }

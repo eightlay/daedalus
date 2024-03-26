@@ -9,8 +9,9 @@ import (
 type MyFancyStep struct {
 }
 
-func (s *MyFancyStep) Run(resolver *daedalus.Resolver) {
+func (s *MyFancyStep) Run(data map[string]daedalus.Data) []daedalus.Data {
 	fmt.Println("MyFancyStep")
+	return nil
 }
 
 func (s *MyFancyStep) GetRequiredData() []string {
