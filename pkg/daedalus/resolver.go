@@ -1,6 +1,9 @@
 package daedalus
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type resolver struct {
 	data map[string]Data
@@ -21,18 +24,41 @@ func (r *resolver) push_data(step Step, data []Data) error {
 		declared_output_data[val] = true
 	}
 
+	output_not_decalred := make([]string, 0, len(data))
+
 	if r.data != nil {
 		for _, value := range data {
 			name := value.GetName()
 
 			if _, ok := declared_output_data[name]; !ok {
-				return errors.New("output data not declared in Step.GetOutputData: " + name)
+				output_not_decalred = append(output_not_decalred, name)
+				continue
 			}
+
+			declared_output_data[name] = false
 			r.data[name] = value
 		}
 	}
 
-	return nil
+	var err error = nil
+
+	if len(output_not_decalred) > 0 {
+		err = errors.New("\toutput data not declared: " + fmt.Sprintf("%v", output_not_decalred))
+	}
+
+	not_provided := make([]string, 0, len(declared_output_data))
+
+	for key, val := range declared_output_data {
+		if val {
+			not_provided = append(not_provided, key)
+		}
+	}
+
+	if len(not_provided) > 0 {
+		err = errors.Join(err, errors.New("\toutput data not provided: "+fmt.Sprintf("%v", not_provided)))
+	}
+
+	return err
 }
 
 func (r *resolver) get_data_for_step(step Step) map[string]Data {

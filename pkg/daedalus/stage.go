@@ -74,7 +74,7 @@ func (s *stage) run_step(step_num int, step Step, resolver *resolver) error {
 	step_data := resolver.get_data_for_step(step)
 	step_result := step.Run(step_data)
 	if err := resolver.push_data(step, step_result); err != nil {
-		return prepend_to_error(fmt.Sprintf("stage %d:", step_num), err)
+		return prepend_to_error(fmt.Sprintf("stage %d:\n", step_num), err)
 	}
 	return nil
 }
