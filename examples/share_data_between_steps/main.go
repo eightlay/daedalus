@@ -14,14 +14,6 @@ func (d *MyFancyData) GetName() string {
 	return "MyFancyData"
 }
 
-func (d *MyFancyData) CopyFrom(data daedalus.Data) {
-	if conv, ok := data.(*MyFancyData); ok {
-		d.message = conv.message
-	} else {
-		panic("Trying to copy data from different types")
-	}
-}
-
 type MyFancyStep1 struct {
 }
 
