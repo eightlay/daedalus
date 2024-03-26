@@ -2,6 +2,7 @@ package daedalus
 
 import (
 	"errors"
+	"fmt"
 
 	idcounter "github.com/eightlay/daedalus/internal/id_counter"
 )
@@ -27,8 +28,10 @@ func (c *conveyor) run(resolver *resolver) error {
 
 	execution_order := sort_map_keys(c.stages)
 
-	for id := range execution_order {
-		c.stages[id].run(resolver)
+	for i, id := range execution_order {
+		if err := c.stages[id].run(resolver); err != nil {
+			return prepend_to_error(fmt.Sprintf("stage %d,", i), err)
+		}
 	}
 	return nil
 }
