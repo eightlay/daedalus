@@ -37,9 +37,23 @@ func (c *conveyor) run(resolver *resolver) error {
 }
 
 func (c *conveyor) build() (int, error) {
-	// TODO
+	execution_order := sort_map_keys(c.stages)
+	total_data := map[string]bool{}
+
+	for i, id := range execution_order {
+		data, err := c.stages[id].build(total_data)
+
+		if err != nil {
+			return 0, prepend_to_error(fmt.Sprintf("stage %d,", i), err)
+		}
+
+		for k := range data {
+			total_data[k] = true
+		}
+	}
+
 	c.is_built = true
-	return 0, nil
+	return len(total_data), nil
 }
 
 func (c *conveyor) perform_action(fn interface{}, stage_id int, args ...interface{}) ([]interface{}, error) {

@@ -30,6 +30,39 @@ func new_stage(run_steps_as_goroutines ...bool) *stage {
 	}
 }
 
+func (s *stage) build(previous_stages_data map[string]bool) (map[string]bool, error) {
+	execution_order := sort_map_keys(s.steps)
+	stage_data := map[string]bool{}
+
+	for _, id := range execution_order {
+		missing_data := []error{}
+
+		for _, data := range s.steps[id].GetRequiredData() {
+			if _, ok := previous_stages_data[data]; ok {
+				continue
+			}
+			if _, ok := stage_data[data]; ok {
+				continue
+			}
+			missing_data = append(missing_data, fmt.Errorf("\tstep %d: %s", id, data))
+		}
+
+		if s.run_steps_as_goroutines {
+			continue
+		}
+
+		for _, data := range s.steps[id].GetOutputData() {
+			stage_data[data] = true
+		}
+
+		if len(missing_data) > 0 {
+			return nil, combine_errors(errors.New("missing data: "), missing_data)
+		}
+	}
+
+	return stage_data, nil
+}
+
 func (s *stage) run(resolver *resolver) error {
 	if s.run_steps_as_goroutines {
 		return s.run_as_goroutines(resolver)
