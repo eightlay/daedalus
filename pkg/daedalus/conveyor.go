@@ -28,9 +28,9 @@ func (c *conveyor) run(resolver *resolver) error {
 
 	execution_order := sort_map_keys(c.stages)
 
-	for i, id := range execution_order {
+	for _, id := range execution_order {
 		if err := c.stages[id].run(resolver); err != nil {
-			return prepend_to_error(fmt.Sprintf("stage %d,", i), err)
+			return prepend_to_error(fmt.Sprintf("stage %d,", id), err)
 		}
 	}
 	return nil

@@ -37,8 +37,8 @@ func (s *stage) run(resolver *resolver) error {
 
 	execution_order := sort_map_keys(s.steps)
 
-	for i, id := range execution_order {
-		if err := s.run_step(i, s.steps[id], resolver); err != nil {
+	for _, id := range execution_order {
+		if err := s.run_step(id, s.steps[id], resolver); err != nil {
 			return err
 		}
 	}
