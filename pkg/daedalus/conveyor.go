@@ -9,6 +9,7 @@ import (
 
 type conveyor struct {
 	is_built         bool
+	is_run_done      bool
 	stages           map[int]*stage
 	stage_id_counter *idcounter.IdCounter
 }
@@ -16,9 +17,15 @@ type conveyor struct {
 func new_conveyor() *conveyor {
 	return &conveyor{
 		is_built:         false,
+		is_run_done:      false,
 		stages:           map[int]*stage{},
 		stage_id_counter: idcounter.NewIdCounter(),
 	}
+}
+
+func (c *conveyor) reset_flags() {
+	c.is_built = false
+	c.is_run_done = false
 }
 
 func (c *conveyor) run(resolver *resolver) error {
@@ -33,6 +40,8 @@ func (c *conveyor) run(resolver *resolver) error {
 			return prepend_to_error(fmt.Sprintf("stage %d,", id), err)
 		}
 	}
+
+	c.is_run_done = true
 	return nil
 }
 
@@ -53,6 +62,7 @@ func (c *conveyor) build() (int, error) {
 	}
 
 	c.is_built = true
+	c.is_run_done = false
 	return len(total_data), nil
 }
 
@@ -60,7 +70,7 @@ func (c *conveyor) perform_action(fn interface{}, stage_id int, args ...interfac
 	if err := c.check_stage_id(stage_id); err != nil {
 		return nil, err
 	}
-	c.is_built = false
+	c.reset_flags()
 
 	argSlice := make([]interface{}, len(args))
 	copy(argSlice, args)
@@ -88,7 +98,7 @@ func (c *conveyor) check_stage_id(stage_id int) error {
 }
 
 func (c *conveyor) add_stage(stage *stage) int {
-	c.is_built = false
+	c.reset_flags()
 	c.stages[c.stage_id_counter.Next()] = stage
 	return c.stage_id_counter.Current()
 }
@@ -109,7 +119,7 @@ func (c *conveyor) del_step(stage_id, step_id int) error {
 }
 
 func (c *conveyor) clear() {
-	c.is_built = false
+	c.reset_flags()
 	c.stages = map[int]*stage{}
 	c.stage_id_counter.Clear()
 }
