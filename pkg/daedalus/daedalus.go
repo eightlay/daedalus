@@ -1,5 +1,7 @@
 package daedalus
 
+import "fmt"
+
 type Daedalus struct {
 	conv     *conveyor
 	resolver *resolver
@@ -79,4 +81,29 @@ func (d *Daedalus) GetStagesNumber() int {
 
 func (d *Daedalus) GetStageStepsNumber(stage_id int) int {
 	return d.conv.get_stage_steps_number(stage_id)
+}
+
+func (d *Daedalus) PrintRunStats() {
+	stats := d.GetRunStats()
+
+	fmt.Println("\n===========================================")
+	fmt.Println("                Run stats")
+	fmt.Println("===========================================")
+
+	for stage_id, stage_stats := range stats {
+		fmt.Printf("Stage %d:\n", stage_id)
+
+		for step_id, step_stats := range stage_stats {
+			fmt.Printf("  Step %d:\n", step_id)
+			step_stats.Print("    ")
+		}
+	}
+
+	fmt.Println("===========================================\n ")
+}
+
+func (d *Daedalus) GetRunStats() map[int]map[int]*RunStats {
+	stats, err := d.conv.get_run_stats()
+	d.handle_error(err)
+	return stats
 }

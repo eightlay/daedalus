@@ -57,4 +57,6 @@ func main() {
 
 	d.Build()
 	d.Run()
+
+	d.PrintRunStats()
 }

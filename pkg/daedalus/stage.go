@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	idcounter "github.com/eightlay/daedalus/internal/id_counter"
 )
@@ -63,53 +64,79 @@ func (s *stage) build(previous_stages_data map[string]bool) (map[string]bool, er
 	return stage_data, nil
 }
 
-func (s *stage) run(resolver *resolver) error {
+func (s *stage) run(resolver *resolver) (map[int]*RunStats, error) {
 	if s.run_steps_as_goroutines {
 		return s.run_as_goroutines(resolver)
 	}
 
 	execution_order := sort_map_keys(s.steps)
+	stats := make(map[int]*RunStats, len(execution_order))
 
 	for _, id := range execution_order {
-		if err := s.run_step(id, s.steps[id], resolver); err != nil {
-			return err
+		step_stats, err := s.run_step(id, s.steps[id], resolver)
+
+		if err != nil {
+			return nil, err
 		}
+
+		stats[id] = step_stats
 	}
 
-	return nil
+	return stats, nil
 }
 
-func (s *stage) run_as_goroutines(resolver *resolver) error {
+func (s *stage) run_as_goroutines(resolver *resolver) (map[int]*RunStats, error) {
 	steps_errors := []error{}
 	var wg sync.WaitGroup
+
+	type stepStats struct {
+		step_id int
+		stats   *RunStats
+	}
+
+	stats_chan := make(chan stepStats, len(s.steps))
 
 	for i, step := range s.steps {
 		wg.Add(1)
 		go func(step Step) {
 			defer wg.Done()
-			err := s.run_step(i, step, resolver)
+			stats, err := s.run_step(i, step, resolver)
 
 			if err != nil {
 				steps_errors = append(steps_errors, err)
 			}
+
+			stats_chan <- stepStats{i, stats}
 		}(step)
 	}
 
 	wg.Wait()
 
 	if len(steps_errors) > 0 {
-		return combine_errors(errors.New("errors occurred during goroutine execution"), steps_errors)
+		return nil, combine_errors(errors.New("errors occurred during goroutine execution"), steps_errors)
 	}
-	return nil
+
+	stats := make(map[int]*RunStats, len(s.steps))
+
+	for range s.steps {
+		step_stats := <-stats_chan
+		stats[step_stats.step_id] = step_stats.stats
+	}
+
+	return stats, nil
 }
 
-func (s *stage) run_step(step_num int, step Step, resolver *resolver) error {
+func (s *stage) run_step(step_num int, step Step, resolver *resolver) (*RunStats, error) {
 	step_data := resolver.get_data_for_step(step)
+
+	time_start := time.Now()
 	step_result := step.Run(step_data)
+	duration := time.Since(time_start)
+
 	if err := resolver.push_data(step, step_result); err != nil {
-		return prepend_to_error(fmt.Sprintf("stage %d:\n", step_num), err)
+		return nil, prepend_to_error(fmt.Sprintf("stage %d:\n", step_num), err)
 	}
-	return nil
+	return new_run_stats(duration), nil
 }
 
 func (s *stage) add_step(step Step) int {

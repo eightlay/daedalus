@@ -12,6 +12,7 @@ type conveyor struct {
 	is_run_done      bool
 	stages           map[int]*stage
 	stage_id_counter *idcounter.IdCounter
+	stage_run_stats  map[int]map[int]*RunStats
 }
 
 func new_conveyor() *conveyor {
@@ -20,6 +21,7 @@ func new_conveyor() *conveyor {
 		is_run_done:      false,
 		stages:           map[int]*stage{},
 		stage_id_counter: idcounter.NewIdCounter(),
+		stage_run_stats:  map[int]map[int]*RunStats{},
 	}
 }
 
@@ -36,9 +38,13 @@ func (c *conveyor) run(resolver *resolver) error {
 	execution_order := sort_map_keys(c.stages)
 
 	for _, id := range execution_order {
-		if err := c.stages[id].run(resolver); err != nil {
+		stats, err := c.stages[id].run(resolver)
+
+		if err != nil {
 			return prepend_to_error(fmt.Sprintf("stage %d,", id), err)
 		}
+
+		c.stage_run_stats[id] = stats
 	}
 
 	c.is_run_done = true
@@ -135,4 +141,11 @@ func (c *conveyor) get_stages_number() int {
 
 func (c *conveyor) get_stage_steps_number(stage_id int) int {
 	return c.stages[stage_id].get_steps_number()
+}
+
+func (c *conveyor) get_run_stats() (map[int]map[int]*RunStats, error) {
+	if !c.is_run_done {
+		return nil, errors.New("run has not been performed yet")
+	}
+	return c.stage_run_stats, nil
 }
