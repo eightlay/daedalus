@@ -67,7 +67,7 @@ func (s *stage) build(previous_stages_data map[string]bool) (map[string]bool, er
 
 func (s *stage) run(resolver *resolver, vh *verbosity_handler) (map[int]*RunStats, error) {
 	if s.run_steps_as_goroutines {
-		return s.run_as_goroutines(resolver)
+		return s.run_as_goroutines(resolver, vh)
 	}
 
 	execution_order := sort_map_keys(s.steps)
@@ -94,7 +94,7 @@ func (s *stage) run(resolver *resolver, vh *verbosity_handler) (map[int]*RunStat
 	return stats, nil
 }
 
-func (s *stage) run_as_goroutines(resolver *resolver) (map[int]*RunStats, error) {
+func (s *stage) run_as_goroutines(resolver *resolver, vh *verbosity_handler) (map[int]*RunStats, error) {
 	steps_errors := []error{}
 	var wg sync.WaitGroup
 
@@ -105,21 +105,31 @@ func (s *stage) run_as_goroutines(resolver *resolver) (map[int]*RunStats, error)
 
 	stats_chan := make(chan stepStats, len(s.steps))
 
+	vh.stage_start(s.id)
+
 	for i, step := range s.steps {
 		wg.Add(1)
+
 		go func(step Step) {
 			defer wg.Done()
+
+			vh.step_start(i)
+
 			stats, err := s.run_step(i, step, resolver)
 
 			if err != nil {
 				steps_errors = append(steps_errors, err)
 			}
 
+			vh.step_end(i)
+
 			stats_chan <- stepStats{i, stats}
 		}(step)
 	}
 
 	wg.Wait()
+
+	vh.stage_end(s.id)
 
 	if len(steps_errors) > 0 {
 		return nil, combine_errors(errors.New("errors occurred during goroutine execution"), steps_errors)
