@@ -13,6 +13,7 @@ type stage struct {
 	steps                   map[int]Step
 	steps_id_counter        *idcounter.IdCounter
 	run_steps_as_goroutines bool
+	id                      int
 }
 
 func new_stage(run_steps_as_goroutines ...bool) *stage {
@@ -64,7 +65,7 @@ func (s *stage) build(previous_stages_data map[string]bool) (map[string]bool, er
 	return stage_data, nil
 }
 
-func (s *stage) run(resolver *resolver) (map[int]*RunStats, error) {
+func (s *stage) run(resolver *resolver, vh *verbosity_handler) (map[int]*RunStats, error) {
 	if s.run_steps_as_goroutines {
 		return s.run_as_goroutines(resolver)
 	}
@@ -72,15 +73,23 @@ func (s *stage) run(resolver *resolver) (map[int]*RunStats, error) {
 	execution_order := sort_map_keys(s.steps)
 	stats := make(map[int]*RunStats, len(execution_order))
 
+	vh.stage_start(s.id)
+
 	for _, id := range execution_order {
+		vh.step_start(id)
+
 		step_stats, err := s.run_step(id, s.steps[id], resolver)
 
 		if err != nil {
 			return nil, err
 		}
 
+		vh.step_end(id)
+
 		stats[id] = step_stats
 	}
+
+	vh.stage_end(s.id)
 
 	return stats, nil
 }

@@ -30,15 +30,17 @@ func (c *conveyor) reset_flags() {
 	c.is_run_done = false
 }
 
-func (c *conveyor) run(resolver *resolver) error {
+func (c *conveyor) run(resolver *resolver, vh *verbosity_handler) error {
 	if !c.is_built {
 		return errors.New("conveyor is not built")
 	}
 
 	execution_order := sort_map_keys(c.stages)
 
+	vh.start()
+
 	for _, id := range execution_order {
-		stats, err := c.stages[id].run(resolver)
+		stats, err := c.stages[id].run(resolver, vh)
 
 		if err != nil {
 			return prepend_to_error(fmt.Sprintf("stage %d,", id), err)
@@ -46,6 +48,8 @@ func (c *conveyor) run(resolver *resolver) error {
 
 		c.stage_run_stats[id] = stats
 	}
+
+	vh.end()
 
 	c.is_run_done = true
 	return nil
@@ -105,7 +109,9 @@ func (c *conveyor) check_stage_id(stage_id int) error {
 
 func (c *conveyor) add_stage(stage *stage) int {
 	c.reset_flags()
-	c.stages[c.stage_id_counter.Next()] = stage
+	stage_id := c.stage_id_counter.Next()
+	stage.id = stage_id
+	c.stages[stage_id] = stage
 	return c.stage_id_counter.Current()
 }
 

@@ -51,7 +51,7 @@ func (s *MyFancyStep2) GetOutputData() []string {
 }
 
 func main() {
-	d := daedalus.NewDaedalus()
+	d := daedalus.NewDaedalus(daedalus.STEPS)
 	stage_num, _ := d.AddStep(-1, &MyFancyStep1{})
 	d.AddStep(stage_num, &MyFancyStep2{})
 

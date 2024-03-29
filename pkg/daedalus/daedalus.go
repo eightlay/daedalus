@@ -5,12 +5,17 @@ import "fmt"
 type Daedalus struct {
 	conv     *conveyor
 	resolver *resolver
+	vh       *verbosity_handler
 }
 
-func NewDaedalus() *Daedalus {
+func NewDaedalus(verbosity ...Verbosity) *Daedalus {
+	if len(verbosity) == 0 {
+		verbosity = append(verbosity, SILENT)
+	}
 	return &Daedalus{
 		conv:     new_conveyor(),
 		resolver: nil,
+		vh:       new_verbosity_handler(verbosity[0]),
 	}
 }
 
@@ -20,8 +25,12 @@ func (d *Daedalus) handle_error(err error) {
 	}
 }
 
+func (d *Daedalus) SetVerbosity(verbosity Verbosity) {
+	d.vh.set_verbosity(verbosity)
+}
+
 func (d *Daedalus) Run() {
-	d.handle_error(d.conv.run(d.resolver))
+	d.handle_error(d.conv.run(d.resolver, d.vh))
 }
 
 func (d *Daedalus) Build(disable_checks ...bool) {
