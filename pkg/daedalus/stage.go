@@ -43,14 +43,10 @@ func (s *stage) build(previous_stages_data map[string]bool) (map[string]bool, er
 			if _, ok := previous_stages_data[data]; ok {
 				continue
 			}
-			if _, ok := stage_data[data]; ok {
+			if _, ok := stage_data[data]; ok && !s.run_steps_as_goroutines {
 				continue
 			}
 			missing_data = append(missing_data, fmt.Errorf("\tstep %d: %s", id, data))
-		}
-
-		if s.run_steps_as_goroutines {
-			continue
 		}
 
 		for _, data := range s.steps[id].GetOutputData() {
