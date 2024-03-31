@@ -13,6 +13,10 @@ Daedalus is the pipeline framework you've always been looking for.
 7. [Share data between steps](examples/share_data_between_steps/)
 8. [Run steps as goroutines](examples/run_steps_as_goroutines/)
 
+## Real usage example
+
+1. [Where to buy bitcoin](examples/where_to_buy_bitcoin/)
+
 ## Description
 
 Daedalus has the necessary key tools to help you create the pipeline of your dreams.
